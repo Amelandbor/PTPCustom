@@ -15,7 +15,7 @@ import six
 log = CPLog(__name__)
 
 
-class Base(TorrentProvider):
+class PTPCustom(TorrentProvider):
 
     urls = {
         'domain': 'https://tls.passthepopcorn.me',
