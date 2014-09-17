@@ -8,6 +8,8 @@ from couchpotato.core.helpers.encoding import tryUrlencode
 from couchpotato.core.helpers.variable import getTitle, tryInt, mergeDicts, getIdentifier
 from couchpotato.core.logger import CPLog
 from couchpotato.core.media._base.providers.torrent.base import TorrentProvider
+from couchpotato.core.media.movie.providers.base import MovieProvider
+
 from dateutil.parser import parse
 import six
 
@@ -15,7 +17,7 @@ import six
 log = CPLog(__name__)
 
 
-class PTPCustom(TorrentProvider):
+class PTPCustom(TorrentProvider, MovieProvider):
 
     urls = {
         'domain': 'https://tls.passthepopcorn.me',
@@ -24,6 +26,34 @@ class PTPCustom(TorrentProvider):
         'login': 'https://tls.passthepopcorn.me/ajax.php?action=login',
         'login_check': 'https://tls.passthepopcorn.me/ajax.php?action=login',
         'search': 'https://tls.passthepopcorn.me/search/%s/0/7/%d'
+    }
+
+    quality_search_params = {
+        'bd50':     {'media': 'Blu-ray', 'format': 'BD50'},
+        '1080p':    {'resolution': '1080p'},
+        '720p':     {'resolution': '720p'},
+        'brrip':    {'media': 'Blu-ray'},
+        'dvdr':     {'resolution': 'anysd'},
+        'dvdrip':   {'media': 'DVD'},
+        'scr':      {'media': 'DVD-Screener'},
+        'r5':       {'media': 'R5'},
+        'tc':       {'media': 'TC'},
+        'ts':       {'media': 'TS'},
+        'cam':      {'media': 'CAM'}
+    }
+
+    post_search_filters = {
+        'bd50':     {'Codec': ['BD50']},
+        '1080p':    {'Resolution': ['1080p']},
+        '720p':     {'Resolution': ['720p']},
+        'brrip':    {'Source': ['Blu-ray'], 'Quality': ['High Definition'], 'Container': ['!ISO']},
+        'dvdr':     {'Codec': ['DVD5', 'DVD9']},
+        'dvdrip':   {'Source': ['DVD'], 'Codec': ['!DVD5', '!DVD9']},
+        'scr':      {'Source': ['DVD-Screener']},
+        'r5':       {'Source': ['R5']},
+        'tc':       {'Source': ['TC']},
+        'ts':       {'Source': ['TS']},
+        'cam':      {'Source': ['CAM']}
     }
 
     http_time_between_calls = 2
@@ -182,98 +212,3 @@ class PTPCustom(TorrentProvider):
             return False
 
     loginCheckSuccess = loginSuccess
-
-
-config = [{
-    'name': 'passthepopcorn',
-    'groups': [
-        {
-            'tab': 'searcher',
-            'list': 'torrent_providers',
-            'name': 'PassThePopcorn',
-            'description': '<a href="https://passthepopcorn.me">PassThePopcorn.me</a>',
-            'wizard': True,
-            'icon': 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAARklEQVQoz2NgIAP8BwMiGWRpIN1JNWn/t6T9f532+W8GkNt7vzz9UkfarZVpb68BuWlbnqW1nU7L2DMx7eCoBlpqGOppCQB83zIgIg+wWQAAAABJRU5ErkJggg==',
-            'options': [
-                {
-                    'name': 'enabled',
-                    'type': 'enabler',
-                    'default': False
-                },
-                {
-                    'name': 'domain',
-                    'advanced': True,
-                    'label': 'Proxy server',
-                    'description': 'Domain for requests (HTTPS only!), keep empty to use default (tls.passthepopcorn.me).',
-                },
-                {
-                    'name': 'username',
-                    'default': '',
-                },
-                {
-                    'name': 'password',
-                    'default': '',
-                    'type': 'password',
-                },
-                {
-                    'name': 'passkey',
-                    'default': '',
-                },
-                {
-                    'name': 'prefer_golden',
-                    'advanced': True,
-                    'type': 'bool',
-                    'label': 'Prefer golden',
-                    'default': 1,
-                    'description': 'Favors Golden Popcorn-releases over all other releases.'
-                },
-                {
-                    'name': 'prefer_freeleech',
-                    'advanced': True,
-                    'type': 'bool',
-                    'label': 'Prefer Freeleech',
-                    'default': 1,
-                    'description': 'Favors torrents marked as freeleech over all other releases.'
-                },
-                {
-                    'name': 'prefer_scene',
-                    'advanced': True,
-                    'type': 'bool',
-                    'label': 'Prefer scene',
-                    'default': 0,
-                    'description': 'Favors scene-releases over non-scene releases.'
-                },
-                {
-                    'name': 'require_approval',
-                    'advanced': True,
-                    'type': 'bool',
-                    'label': 'Require approval',
-                    'default': 0,
-                    'description': 'Require staff-approval for releases to be accepted.'
-                },
-                {
-                    'name': 'seed_ratio',
-                    'label': 'Seed ratio',
-                    'type': 'float',
-                    'default': 1,
-                    'description': 'Will not be (re)moved until this seed ratio is met.',
-                },
-                {
-                    'name': 'seed_time',
-                    'label': 'Seed time',
-                    'type': 'int',
-                    'default': 40,
-                    'description': 'Will not be (re)moved until this seed time (in hours) is met.',
-                },
-                {
-                    'name': 'extra_score',
-                    'advanced': True,
-                    'label': 'Extra Score',
-                    'type': 'int',
-                    'default': 20,
-                    'description': 'Starting score for each release found via this provider.',
-                }
-            ],
-        }
-    ]
-}]
